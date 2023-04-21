@@ -4,6 +4,6 @@
 see example for usage.
 
 **TODO**
--[] add cli
--[] add detailed doc
--[] add auto evaluation for user selected genes
+- [ ] add cli
+- [ ] add detailed doc
+- [ ] add auto evaluation for user selected genes
