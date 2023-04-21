@@ -5,7 +5,7 @@ import scanpy as sc
 import pandas as pd
 from enum import Enum
 from scipy.spatial.distance import squareform
-from FastMarkerCaller.group_obs_mean import group_obs_mean
+from .FastMarkerCaller.FastMarkerCaller.group_obs_mean import group_obs_mean
 
 class Expression(str, Enum):
     Frac = 'frac'

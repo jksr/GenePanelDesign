@@ -3,8 +3,8 @@
 import numpy as np
 import pandas as pd
 from enum import Enum
-from FastMarkerCaller.group_obs_mean import group_obs_mean
-from FastMarkerCaller.markercaller import MarkerCaller
+from .FastMarkerCaller.FastMarkerCaller.group_obs_mean import group_obs_mean
+from .FastMarkerCaller.FastMarkerCaller.markercaller import MarkerCaller
 from scipy.spatial.distance import pdist, squareform
 from sklearn.metrics import mutual_info_score
 from tqdm import tqdm
