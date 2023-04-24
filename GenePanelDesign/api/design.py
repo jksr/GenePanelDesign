@@ -180,7 +180,7 @@ class GenePanelDesigner:
     def finalize_panels(self, panels, final_genes=500, weights=None):
         if isinstance(weights, dict):
             extra = list(set(panels.keys())-set(weights.keys()))
-            if len(extra)>1 or extra[0]!='_Predefine_':
+            if len(extra)>1 and extra[0]!='_Predefine_':
                 raise ValueError()
         elif isinstance(weights, Iterable):
             weights = dict(zip(self.names, weights))
