@@ -7,6 +7,7 @@ from tqdm import tqdm
 from enum import Enum
 from .marker import ConditionMarkerSelector, InitGenesMethod, RankGenesMethod
 from .summary import Expression, GenePanelSummerizer
+import warnings
 
 
 
@@ -212,40 +213,47 @@ class GenePanelDesigner:
         last_pos = np.array([len(panel) for panel in panels_])
         genes = _union_index(_sub_panel(panels_, last_pos)+fixed_panels)
         n_prev = len(genes)-final_genes
-        print(f'{len(genes)} gene candidates -> {final_genes} final genes')
-        with tqdm(total=n_prev, desc='Remove less informative genes ') as pbar:
-            while True:
-                genes = _union_index(_sub_panel(panels_, last_pos)+fixed_panels)
-                if len(genes)<= final_genes:
-                    break
 
-                distdiffs = []
-                for i in range(len(panels_)):
-                    if last_pos[i]<=0:
-                        distdiffs.append(np.inf)
-                        continue
+        if len(genes)< final_genes:
+            warnings.warn(f'There are only {len(genes)} genes in total from all the single panels, '
+                          'less than the desired {final_genes} genes. '
+                          'Please consider to increase the min_genes parameter for the single panels')
+        else:
+            print(f'{len(genes)} gene candidates -> {final_genes} final genes')
+            with tqdm(total=n_prev, desc='Remove less informative genes ') as pbar:
+                while True:
+                    genes = _union_index(_sub_panel(panels_, last_pos)+fixed_panels)
+                    if len(genes)<= final_genes:
+                        break
 
-                    test_last_pos = np.array(last_pos)
-                    test_last_pos[i] -= 1
-                    test_genes = _union_index(_sub_panel(panels_, test_last_pos)+fixed_panels)
+                    distdiffs = []
+                    for i in range(len(panels_)):
+                        if last_pos[i]<=0:
+                            distdiffs.append(np.inf)
+                            continue
 
-                    distdiff = []
-                    for selector,w in zip(selectors, weights):
-                        ori_dists = get_dists(dist_cache, selector, last_pos, genes)[0]
-                        test_dists = get_dists(dist_cache, selector, test_last_pos, test_genes)[0]
-                        distdiff.append((ori_dists-test_dists).max()*w)
-                    distdiffs.append( sum(distdiff) )
-                sel = np.argmin(distdiffs)
+                        test_last_pos = np.array(last_pos)
+                        test_last_pos[i] -= 1
+                        test_genes = _union_index(_sub_panel(panels_, test_last_pos)+fixed_panels)
 
-                last_pos[sel] -= 1
+                        distdiff = []
+                        for selector,w in zip(selectors, weights):
+                            ori_dists = get_dists(dist_cache, selector, last_pos, genes)[0]
+                            test_dists = get_dists(dist_cache, selector, test_last_pos, test_genes)[0]
+                            distdiff.append((ori_dists-test_dists).max()*w)
+                        distdiffs.append( sum(distdiff) )
+                    sel = np.argmin(distdiffs)
 
-                genes = _union_index(_sub_panel(panels_, last_pos)+fixed_panels)
+                    last_pos[sel] -= 1
 
-                n_curr = len(genes)-final_genes
-                pbar.update(n_prev-n_curr)
-                n_prev = n_curr
+                    genes = _union_index(_sub_panel(panels_, last_pos)+fixed_panels)
+
+                    n_curr = len(genes)-final_genes
+                    pbar.update(n_prev-n_curr)
+                    n_prev = n_curr
 
         final = [ panels[name][panels[name].index.isin(genes)] for name in panels ]
+
         return pd.concat(final)
     
     def summarize(self, panel, show_plot=False, to_html=False):

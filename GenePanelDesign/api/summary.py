@@ -83,8 +83,8 @@ class GenePanelSummerizer:
             axes[0].set_title('full')
             axes[1].set_title('panel')
             axes[2].set_title('panel/full')
-            plt.tight_layout()
             plt.suptitle(selector.name)
+            plt.tight_layout()
             
             if show_plot:
                 plt.show()
