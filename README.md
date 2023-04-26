@@ -1,6 +1,6 @@
 # Gene panel designer 
 
-[![DOI](https://zenodo.org/badge/630549850.svg)](https://zenodo.org/badge/latestdoi/630549850)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7869178.svg)](https://doi.org/10.5281/zenodo.7869178)
 
 To install, run
 
