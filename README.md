@@ -14,6 +14,7 @@ To install, run
 see example for usage.
 
 **TODO**
+- [ ] find good cutoff with accumulated data
 - [ ] add cli
 - [ ] add detailed doc
 - [ ] add auto evaluation for user selected genes
