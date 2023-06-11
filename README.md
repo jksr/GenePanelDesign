@@ -1,4 +1,4 @@
-# Gene panel designer 
+# Gene panel designer for spatial transcriptomics
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7869178.svg)](https://doi.org/10.5281/zenodo.7869178)
 
