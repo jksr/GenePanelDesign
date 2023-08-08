@@ -1,6 +1,6 @@
-# Gene panel designer 
+# Gene panel designer for spatial transcriptomics
 
-[![DOI](https://zenodo.org/badge/630549850.svg)](https://zenodo.org/badge/latestdoi/630549850)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7869178.svg)](https://doi.org/10.5281/zenodo.7869178)
 
 To install, run
 
@@ -14,6 +14,7 @@ To install, run
 see example for usage.
 
 **TODO**
+- [ ] find good cutoff with accumulated data
 - [ ] add cli
 - [ ] add detailed doc
 - [ ] add auto evaluation for user selected genes
