@@ -40,7 +40,7 @@ class InitGenesMethod(str,Enum):
 class ConditionMarkerSelector:
     def __init__(self, adata, cond_col, name, 
                  dist_sample_cells_per_group = 500,
-                 dist_n_samples = 10,
+                 dist_n_samples = 10, cand_markers = None,
                 ):
         if isinstance(cond_col, pd.Series):
             self.adata = adata[adata.obs_names.isin(cond_col.index)].copy()
@@ -54,6 +54,10 @@ class ConditionMarkerSelector:
         self.name = name
         
         self._init_designer()
+
+
+        self.cands = set(cand_markers)&set(self.adata.var_names) if cand_markers is not None else set(self.adata.var_names)
+
     
     
     def _init_designer(self):
@@ -198,12 +202,13 @@ class ConditionMarkerSelector:
                     panel = self._get_seed_features_mi()
                 else:
                     raise ValueError()
+                panel['PrevCount'] = 0
+                panel.index.name='gene'
             else:
                 panel = pd.DataFrame([['_Predefine_', 'User', 0]], 
                                      index = genes_to_include, 
                                      columns=['Name','Reason','PrevCount'])
                 panel.index.name='gene'
-            panel['PrevCount'] = 0
         else:
             if genes_to_include is not None:
                 to_add = pd.DataFrame([['_Predefine_', 'User', len(panel.index.unique())]], 
@@ -211,7 +216,7 @@ class ConditionMarkerSelector:
                                      columns=['Name','Reason','PrevCount'])
                 to_add.index.name='gene'
                 panel = panel.append(to_add)
-                
+        #print(panel.shape, panel.index)            
         if rank_with == RankGenesMethod.RANK_WITH_WELCHT:
             ranker = RankMarkersWelchT()
         elif rank_with == RankGenesMethod.RANK_WITH_FCDIF:
@@ -246,9 +251,11 @@ class ConditionMarkerSelector:
                         break
 
                     tmp1 = ranker(self._call_markers(groups[i], groups[j], fdr=fdr))#sorting 
-                    tmp1 = tmp1[~tmp1.index.isin(panel.index)].head(1).copy()
+                    #tmp1 = tmp1[~tmp1.index.isin(panel.index)].head(1).copy()
+                    tmp1 = tmp1[(~tmp1.index.isin(panel.index))&tmp1.index.isin(self.cands)].head(1).copy()
                     tmp2 = ranker(self._call_markers(groups[j], groups[i], fdr=fdr))
-                    tmp2 = tmp2[~tmp2.index.isin(panel.index)].head(1).copy()
+                    #tmp2 = tmp2[~tmp2.index.isin(panel.index)].head(1).copy()
+                    tmp2 = tmp2[(~tmp2.index.isin(panel.index))&tmp2.index.isin(self.cands)].head(1).copy()
                     tmp1['Name'] = self.name
                     tmp2['Name'] = self.name
                     tmp1['Reason'] = reason
@@ -256,5 +263,6 @@ class ConditionMarkerSelector:
                     tmp1['PrevCount'] = prev_count
                     tmp2['PrevCount'] = prev_count
                     marker_dfs.extend([tmp1,tmp2])
-                panel = pd.concat([panel]+marker_dfs)
+                # panel = pd.concat([panel]+marker_dfs)
+                panel = panel.append(marker_dfs)
         return panel    

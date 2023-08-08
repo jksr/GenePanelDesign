@@ -8,6 +8,7 @@ from enum import Enum
 from .marker import ConditionMarkerSelector, InitGenesMethod, RankGenesMethod
 from .summary import Expression, GenePanelSummerizer
 import warnings
+import itertools
 
 
 
@@ -23,6 +24,7 @@ class GenePanelDesigner:
                  downsample_max=None,
                  is_count_matrix=False,
                  n_jobs = 1,
+                 cand_genes = None
                 ):
         
         
@@ -40,7 +42,7 @@ class GenePanelDesigner:
         print('Done.')
     
         print('Initialize gene selectors ...', end=' ')
-        self._init_marker_selectors()
+        self._init_marker_selectors(cand_genes)
         print('Done.')
         
     def _downsample(self, downsample_per_group, downsample_max):
@@ -73,20 +75,20 @@ class GenePanelDesigner:
         sc.pp.normalize_total(self.adata, target_sum=1e6)
         sc.pp.log1p(self.adata)
         
-        sc.pp.highly_variable_genes(self.adata, n_bins=50)
-        sc.pp.highly_variable_genes(self.adata, max_mean=self.adata.var['means'].max(), 
-                                    n_bins=50, n_top_genes=n_top_highly_variable_genes)
-        self.adata = self.adata[:, self.adata.var['highly_variable']].copy()
+        #sc.pp.highly_variable_genes(self.adata, n_bins=50)
+        #sc.pp.highly_variable_genes(self.adata, max_mean=self.adata.var['means'].max(), 
+        #                            n_bins=50, n_top_genes=n_top_highly_variable_genes)
+        #self.adata = self.adata[:, self.adata.var['highly_variable']].copy()
 
-    def _init_single_marker_selectors(self, col):
-        return ConditionMarkerSelector(self.adata, self.adata.obs[col], col)
+    def _init_single_marker_selectors(self, col, cand_genes):
+        return ConditionMarkerSelector(self.adata, self.adata.obs[col], col, cand_markers=cand_genes)
     
-    def _init_marker_selectors(self):
+    def _init_marker_selectors(self, cand_genes):
         if self.n_jobs>1:
             with multiprocessing.Pool(self.n_jobs) as pool:
-                selectors = pool.map(self._init_single_marker_selectors, self.names)
+                selectors = pool.starmap(self._init_single_marker_selectors, itertools.product(self.names, [cand_genes]))
         else:
-            selectors = list(map(self._init_single_marker_selectors, self.names))
+            selectors = list(map(self._init_single_marker_selectors, self.names, cand_genes))
         self.selectors = dict(zip(self.names, selectors))
         
     def make_panels(self, order=RunOrder.SIML, 
@@ -173,7 +175,9 @@ class GenePanelDesigner:
                                                                init_with=init_panel_with,
                                                                rank_with=rank_genes_with,
                                                               )
-        panel = pd.concat(panels.values()).drop_duplicates()
+        panel = pd.concat(panels.values())
+        panel.index.name = 'gene'
+        panel = panel.reset_index().drop_duplicates().set_index('gene')
         panels = {name:subpanel for name,subpanel in panel.groupby('Name')}
         return panels
     
